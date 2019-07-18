@@ -72,6 +72,7 @@ import types
 import os
 import string
 import logging
+from pathlib import Path
 
 PH5VERSION = '4.1.2'
 PROG_VERSION = '2018.268'
@@ -812,85 +813,95 @@ def keys(ph5_table):
 # XXX   Should required_keys be a single key???   XXX
 
 
-def validate(ltable, p, required_keys=[]):
-    '''
-          Validate that key/value p has keys that match column names in ltable,
-          and optionally that the required keys in list
-          required_keys exist in p.
-    '''
+def validate(ph5_table, metadata_dict, required_keys=[]):
+    """
+    Validate that keys in given metadata_dict have key/value paires
+    that match column names in table.
+    Optionally check for required keysrequired_keys exist in p.
+    """
     fail_keys = []
     fail_required = []
     #
     # Try colpathnames, version 2 only, first
     try:
         all_keys = {}
-        for k in ltable.colpathnames:
-            all_keys[k] = True
+        for key in ph5_table.colpathnames:
+            all_keys[key] = True
 
     except AttributeError:
-        all_keys = _flatten(ltable.colnames)
+        all_keys = _flatten(ph5_table.colnames)
 
-    for k in p.keys():
-        if k not in all_keys:
+    ### check for required keys from a table
+    for key in metadata_dict.keys():
+        if key not in all_keys:
             # Column does not exist so remove it from p
-            del p[k]
-            fail_keys.append("Error: No such column: " + k)
+            del metadata_dict[key]
+            fail_keys.append("Error: No such column: {0}".format(key))
 
-    for k in required_keys:
-        if k not in p:
-            fail_required.append("Error: Required key missing: " + k)
+    ### check for given required keys
+    for key in required_keys:
+        if key not in metadata_dict:
+            fail_required.append("Error: Required key missing: {0}".format(key))
 
     return fail_keys, fail_required
 
 
-def node(ph5, path, classname):
+def node(ph5, path, class_name):
+    """
+    Get the node handle of a given path and class name
+    
+    :param ph5: an open ph5 object
+    :type ph5: ph5 object
+    
+    :param path: path to node
+    :type path: string
+    
+    :param class_name: name of class to get
+    :type class_name: string 
+    """
     handle = None
-    dir, file = os.path.split(path)
+    path = Path(path)
 
-    handle = ph5.get_node(dir, name=file, classname=classname)
+    handle = ph5.get_node(str(path.parent), 
+                          name=path.name, 
+                          classname=class_name)
 
     return handle
 
 
-def _cast(vtype, val):
+def _cast(vtype, value):
+    """
+    Cast a table type into a python native type
+    
+    :param vtype: table type
+    :type vtype: string
+    
+    :param value: value to cast 
+    :type value: string
+    """
     if not vtype:
         return None
 
-    if isinstance(val, str):
-        val = val.strip()
-        if val == "":
-            val = None
-        elif (vtype == 'Float64' or vtype == 'float64' or
-              vtype == 'Float32' or vtype == 'float32'):
+    if isinstance(value, str):
+        return_value = value.strip()
+        if return_value == "":
+            return_value = None
+        elif 'float' in vtype.lower(): 
             try:
-                val = float(val)
+                return_value = float(value)
             except ValueError:
-                val = None
-        elif (vtype == 'Int64' or vtype == 'int64' or vtype == 'UInt32' or
-              vtype == 'uint32'):
+                return_value = None
+        elif 'int' in vtype.lower(): 
             try:
-                val = val
+                return_value = int(float(value))
             except ValueError:
-                val = None
-        elif (vtype == 'Int32' or vtype == 'int32' or vtype == 'UInt32' or
-              vtype == 'uint32'):
-            try:
-                val = int(val)
-            except ValueError:
-                val = None
-        elif (vtype == 'Int16' or vtype == 'int16' or vtype == 'UInt16' or
-              vtype == 'uint16'):
-            try:
-                val = int(val)
-            except ValueError:
-                val = None
-        elif (vtype == 'Int8' or vtype == 'int8' or vtype == 'UInt8' or
-              vtype == 'uint8'):
-            try:
-                val = int(val)
-            except ValueError:
-                val = None
-    return val
+                return_value = None
+    elif isinstance(value, (float, int)):
+        return_value = value
+    else:
+        print("Cannot cast {0}".format(type(value)))
+        return_value = None
+    return return_value
 
 
 def search(ltable, key, value):
@@ -936,31 +947,34 @@ def delete(ltable, value, key):
         ltable.flush()
 
 
-def update(ltable, p, key):
+def update(ph5_table, metadata_dict, key):
+    """
+    Update a row in a given table
+    """
     #
     # Find row and update
     #
-    if isinstance(p[key], str):
-        v = p[key].strip()
+    if isinstance(metadata_dict[key], str):
+        value = metadata_dict[key].strip()
 
     # Not sure why this does not work using the search proceedure above?
-    for r in ltable.iterrows():
-        if isinstance(r[key], str):
-            rk = r[key].strip()
+    for row in ph5_table.iterrows():
+        if isinstance(row[key], str):
+            row_key = row[key].strip()
         else:
-            rk = str(r[key])
+            row_key = str(row[key])
 
-        if rk == v:
-            for k in p.keys():
+        if row_key == value:
+            for mkey in metadata_dict.keys():
                 try:
-                    r.__setitem__(k, p[k])
+                    row.__setitem__(mkey, metadata_dict[mkey])
                 except IndexError:
                     # Not all columns need exist
                     pass
 
-            r.update()
+            row.update()
 
-    ltable.flush()
+    ph5_table.flush()
 
 
 def append(ph5_table, metadata_dict):
