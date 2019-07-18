@@ -149,7 +149,7 @@ LOGGER = logging.getLogger(__name__)
 # Column descriptions: XXX THE MEAT STARTS HERE XXX
 
 
-class Experiment (tables.IsDescription):
+class Experiment(tables.IsDescription):
     # time_stamp        = Time ()                            # Time stamp
     # for these entries
     class time_stamp (tables.IsDescription):
@@ -702,7 +702,7 @@ TABLES = {}
 
 
 def add_reference(key, ref):
-    if isinstance(key, types.StringType):
+    if isinstance(key, str):
         key = key.strip()
 
     TABLES[key] = ref
@@ -776,7 +776,7 @@ def _flatten(sequence, result=None, pre=None):
             _flatten(item, result, pre)
         else:
             # If we ever get here something is really wrong!
-            print "oops: ", item
+            print("oops: ", item)
 
     if len(pre) > 0:
         pre.pop()
@@ -848,7 +848,7 @@ def _cast(vtype, val):
     if not vtype:
         return None
 
-    if isinstance(val, types.StringType):
+    if isinstance(val, str):
         val = val.strip()
         if val == "":
             val = None
@@ -861,7 +861,7 @@ def _cast(vtype, val):
         elif (vtype == 'Int64' or vtype == 'int64' or vtype == 'UInt32' or
               vtype == 'uint32'):
             try:
-                val = long(val)
+                val = val
             except ValueError:
                 val = None
         elif (vtype == 'Int32' or vtype == 'int32' or vtype == 'UInt32' or
@@ -932,12 +932,12 @@ def update(ltable, p, key):
     #
     # Find row and update
     #
-    if isinstance(p[key], types.StringType):
+    if isinstance(p[key], str):
         v = p[key].strip()
 
     # Not sure why this does not work using the search proceedure above?
     for r in ltable.iterrows():
-        if isinstance(r[key], types.StringType):
+        if isinstance(r[key], str):
             rk = r[key].strip()
         else:
             rk = str(r[key])
@@ -955,28 +955,117 @@ def update(ltable, p, key):
     ltable.flush()
 
 
-def append(ltable, p):
-    r = ltable.row
+def append(ph5_table, metadata_dict):
+    """
+    Appends metadata to a given table
+    """
+    row = ph5_table.row
     try:
-        vtypes = ltable.coltypes
+        table_types = ph5_table.coltypes
     except AttributeError:
-        vtypes = ltable.colstypes
+        table_types = ph5_table.colstypes
 
-    for k in p.keys():
-        t = vtypes[k]
-        # print k, t
-        val = p[k]
-        val = _cast(t, val)
-        if val is None:
+    for key, value in metadata_dict.items():
+        try:
+            dtype = table_types[key]
+        except KeyError:
+            print("Keyword {0} is not in initial table, skipping".format(key))
+            LOGGER.error("Keyword {0} is not in initial table, skipping".format(key))
+            continue
+        value = _cast(dtype, value)
+        if value is None:
             continue
 
         try:
-            r[k] = val
+            row[key] = value
         except Exception as e:
+            print(e)
             LOGGER.warning("Warning in append: Exception \'%s\'" % e)
 
-    r.append()
-    ltable.flush()
+    row.append()
+    ph5_table.flush()
+    
+def add_column(ph5_table, col_name, col_values, col_type, type_len=32):
+    """
+    Add a column to an existing table
+    
+    :param ph5_table: table to add column to
+    :type ph5_table: pytable.table
+    
+    :param col_name: name of new colume to add
+    :type col_name: string
+    
+    :param col_values: list of values to add 
+    :type col_values: list of col_types
+    
+    :param col_type: [ string | int | float ] 
+    :type col_class: string, will convert to a pytables.tables type Class
+    
+    :param type_len: length of data type
+    :type type_len: int
+        
+    .. note:: length of col_values should be the same as number of inital table
+              entries ()
+              
+    :Example: ::
+        
+        >>> columns.add_column(ph5_obj.ph5_g_experiment.Experiment_g,
+        >>>                    'country', ['USA'], 'string', type_len=64)
+    """
+    assert int(ph5_table.nrows) == len(col_values), 'Number of new values ' +\
+          '({1}) does not match number of existing rows ({0})'.format(ph5_table.nrows, len(col_values))
+    def get_tables_dtype(col_type, type_len):
+        """
+        Get the appropriate pytables.tables data type
+        """
+        if col_type.lower() ==  'string':
+            col_class = tables.StringCol(type_len)
+        elif col_type.lower() == 'int':
+            if type_len == 16:
+                col_class = tables.Int16Col
+            elif type_len == 32:
+                col_class = tables.Int32Col
+            elif type_len == 64:
+                col_class = tables.Int64Col
+            else:
+               col_class = tables.Int32Col 
+        elif col_type.lower() == 'float':
+            if type_len == 16:
+                col_class = tables.Float16Col
+            elif type_len == 32:
+                col_class = tables.Float32Col
+            elif type_len == 64:
+                col_class = tables.Float64Col
+            else:
+                col_class = tables.Float32Col
+        return col_class
+            
+
+    #Step 1: Adjust table description 
+    descr = ph5_table.description._v_colobjects.copy()  #original description
+    descr[col_name] = get_tables_dtype(col_type, type_len) #add column
+
+    #Step 2: Create new temporary table:
+    new_table = tables.Table(ph5_table._v_file.root,
+                             '_temp_table', 
+                             descr, 
+                             filters=ph5_table.filters)  # new table
+    
+    ###Step 2a: Copy attributes:
+    ph5_table.attrs._f_copy(new_table)
+    
+    ###Step 2b: Copy table rows, also add new column values:
+    for row, value in zip(ph5_table, col_values):
+    	new_table.append([tuple(list(row[:]) + [value])])
+    new_table.flush()
+
+    #Step 3: Move temporary table to original location:
+    parent = ph5_table._v_parent  #original table location
+    name = ph5_table._v_name    #original table name
+    ph5_table.remove()                 #remove original table
+    new_table.move(parent, name)    #move temporary table to original location
+    
+    return new_table
 
 
 def is_mini(ltable):
@@ -1000,17 +1089,25 @@ def is_mini(ltable):
     return ltable
 
 
-def populate(ltable, p, key=None):
-    '''   Populate a row in the table ltable.
-          p is a dictionary of key/values to update.
-          If key is set then update, otherwise append.
-    '''
+def populate(ph5_table, metadata_dict, key=None):
+    """
+    Populate a row in the given table
+    
+    :param ph5_table: table to populate
+    :type ph5_table: pytables.table
+    
+    :param metadata_dict: dictionary of key/values to update
+    :type metadata_dict: dictionary
+    
+    :param key: key to update
+    :type key: string
+    """
     # ltable = is_mini (ltable)
     # key is set so update
     if key:
-        if key in p:
+        if key in metadata_dict:
             # print "update"
-            update(ltable, p, key)
+            update(ph5_table, metadata_dict, key)
             # ltable.flush ()
         else:
             LOGGER.warning("No data for key. p.has_key (key) fails")
@@ -1018,7 +1115,7 @@ def populate(ltable, p, key=None):
     # no key so get a new row to append
     else:
         # print "append"
-        append(ltable, p)
+        append(ph5_table, metadata_dict)
         # ltable.flush ()
 
 

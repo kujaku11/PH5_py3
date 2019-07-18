@@ -304,7 +304,7 @@ if __name__ == '__main__':
     while p:
         kall = sorted(kv.keys())
         for k1 in kall:
-            print p, k1, kv[k1]
+            print(p, k1, kv[k1])
 
         p, kv = k.next()
 

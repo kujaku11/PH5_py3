@@ -12,26 +12,32 @@ import os.path
 import time
 import sys
 import logging
-import string
+#import string
 import re
 from ph5.core import columns
-try:
-    import importlib.reload as reload
-except ImportError:
-    pass
+#try:
+#    import importlib.reload as reload
+#except ImportError:
+#    pass
 
 PROG_VERSION = '2019.65'
 LOGGER = logging.getLogger(__name__)
 ZLIBCOMP = 6
 
 os.environ['TZ'] = 'UTM'
-time.tzset()
+
+try:
+    time.tzset()
+except AttributeError as error:
+    print("Windows does not have time.tzset()")
+    print(error)
+    pass
 
 externalLinkRE = re.compile(".*ExternalLink.*")
 
 
-class HDF5InteractionError (Exception):
-    def __init__(self, errno, msg):
+class HDF5InteractionError(Exception):
+    def __init__(self, errno=None, msg=None):
         self.args = (errno, msg)
         self.errno = errno
         self.msg = msg
@@ -1002,7 +1008,7 @@ class ReceiversGroup:
               returns: tables array descriptor
         '''
         # If this is a data array convert it to a numarray.array
-        prefix, body1, suffix = string.split(name, '_')
+        prefix, body1, suffix = name.split('_')
         "_".join([prefix, body1]) + '_'
         if prefix == 'Data':
             if dtype is None:
@@ -1042,7 +1048,7 @@ class ReceiversGroup:
     def populateReceiver_t(self, p, key=None):
         required_keys = []
 
-        populate_table(self.current_t_receiver, p, key, required_keys)
+        populate_table(self.ph5_t_receiver, p, key, required_keys)
 
         self.ph5.flush()
 
@@ -1050,7 +1056,7 @@ class ReceiversGroup:
         required_keys = ['das/serial_number_s', 'start_time/epoch_l',
                          'end_time/epoch_l', 'offset_l', 'slope_d']
 
-        populate_table(self.current_t_time, p, key, required_keys)
+        populate_table(self.ph5_t_time, p, key, required_keys)
 
         self.ph5.flush()
 
@@ -1356,7 +1362,7 @@ class ExperimentGroup:
             self.ph5.close()
             self.ph5 = None
             # This will not work with version 3
-            reload(columns)
+            #reload(columns)
 
     def populateExperiment_t(self, p):
         ''' Keys: 'time_stamp/type, time_stamp/epoch,
@@ -1373,9 +1379,8 @@ class ExperimentGroup:
 
         self.ph5.flush()
 
-    def initgroup(
-            self, ph5_g_title='PIC KITCHEN HDF5 file, Version = '
-            + columns.PH5VERSION):
+    def initgroup(self, ph5_g_title='PIC KITCHEN HDF5 file, Version = '
+                  + columns.PH5VERSION):
         '''   If group Experiment_g does not exist create it,
               otherwise get a reference to it
               If table Experiment_t does not exist create it,
@@ -1460,8 +1465,9 @@ def initialize_table(filenode, where, table, description, expectedrows=None):
 
 
 def populate_table(tablenode, key_value, key=None, required_keys=[]):
-    err_keys, err_required = columns.validate(
-        tablenode, key_value, required_keys)
+    err_keys, err_required = columns.validate(tablenode, 
+                                              key_value, 
+                                              required_keys)
 
     if err_keys:
         raise HDF5InteractionError(1, err_keys)
@@ -1473,8 +1479,7 @@ def populate_table(tablenode, key_value, key=None, required_keys=[]):
         columns.populate(tablenode, key_value, key)
         tablenode.flush()
     except Exception as e:
-        raise HDF5InteractionError(3, e.message)
-
+        raise HDF5InteractionError(3, e)
 
 def read_table(tablenode):
     ret = []
@@ -1488,7 +1493,7 @@ def read_table(tablenode):
         keys, names = columns.keys(tablenode)
         ret = columns.rowstolist(tableiterator, keys)
     except Exception as e:
-        raise HDF5InteractionError(4, e.message)
+        raise HDF5InteractionError(4, str(e))
 
     return ret, keys
 
@@ -1512,7 +1517,7 @@ def create_empty_earray(filenode, groupnode, name,
                                        expectedrows=expectedrows)
 
     except Exception as e:
-        raise HDF5InteractionError(5, e.message)
+        raise HDF5InteractionError(5, str(e))
 
     return a
 
@@ -1530,7 +1535,7 @@ def create_data_earray(filenode, groupnode, name, data, batom, rows=None):
 
         a.append(data)
     except Exception as e:
-        raise HDF5InteractionError(6, e.message)
+        raise HDF5InteractionError(6, str(e))
 
     return a
 
@@ -1555,7 +1560,7 @@ if __name__ == '__main__':
     reports, keys = ex.ph5_g_reports.read_reports()
     for r in reports:
         for k in keys:
-            print k, r[k]
+            print(k, r[k])
 
     ex.ph5close()
     sys.exit()
@@ -1582,13 +1587,13 @@ if __name__ == '__main__':
 
                 # Is this das in this array?
                 if dict[k].das not in dass:
-                    print "Not found in any array: ", dict[k].das
+                    print("Not found in any array: ", dict[k].das)
                     continue
                 lat = dict[k].receiver['location/X/value_d']
                 lon = dict[k].receiver['location/Y/value_d']
-                print dict[k].das, dict[k].epoch, dict[k].length, lat, lon
+                print(dict[k].das, dict[k].epoch, dict[k].length, lat, lon)
                 i = i + 1
 
-    print "Matched %d traces." % i
+    print("Matched %d traces." % i)
 
     ex.ph5close()

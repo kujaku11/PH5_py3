@@ -10,7 +10,7 @@ import os
 import string
 import re
 from ph5.core import columns
-from StringIO import StringIO
+from io import StringIO
 
 PROG_VERSION = '2019.53'
 LOGGER = logging.getLogger(__name__)
@@ -413,5 +413,5 @@ if __name__ == '__main__':
     for p, kv in k:
         kall = sorted(kv.keys())
         for k1 in kall:
-            print p, k1, kv[k1]
+            print(p, k1, kv[k1])
     k.close()

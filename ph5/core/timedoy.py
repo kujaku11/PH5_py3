@@ -8,7 +8,7 @@
 import time
 import os
 import math
-import exceptions
+#import exceptions
 
 from datetime import datetime, tzinfo, timedelta
 
@@ -18,10 +18,15 @@ DAYS_IN_MONTH = (31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31, 31)
 DAYS_IN_MONTH_LEAP = (31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31, 31)
 
 os.environ['TZ'] = 'UTC'
-time.tzset()
+try:
+    time.tzset()
+except AttributeError as error:
+    print("Windows does not have time.tzset()")
+    print(error)
+    pass
 
 
-class TimeError (exceptions.Exception):
+class TimeError (Exception):
     pass
 
 
@@ -263,7 +268,7 @@ def timecorrect(tdoy, ms):
     try:
         return TimeDOY(dtobject=tdoy.dtobject + timedelta(0, 0, 0, ms))
     except Exception as e:
-        print e.message
+        print(e.message)
         return tdoy
 
 
@@ -372,25 +377,25 @@ if __name__ == "__main__":
     import sys
     import os
     tdoy = TimeDOY(microsecond=400000, epoch=1469645921)
-    print tdoy
+    print(tdoy)
     sys.exit()
     tdoy = TimeDOY(microsecond=231034, epoch=1402509329)
-    print "Should return", '2014:162:17:55:29'
-    print tdoy.getPasscalTime()
-    print "Should return", '231034'
-    print tdoy.dtobject.microsecond
+    print("Should return", '2014:162:17:55:29')
+    print(tdoy.getPasscalTime())
+    print("Should return", '231034')
+    print(tdoy.dtobject.microsecond)
 
     tdoy = TimeDOY(year=2014, hour=17, minute=55,
                    second=29, doy=162, microsecond=123456)
-    print "Should return", '1402509329'
-    print tdoy.epoch()
-    print tdoy.getFdsnTime()
-    print tdoy.getPasscalTime(ms=True)
+    print("Should return", '1402509329')
+    print(tdoy.epoch())
+    print(tdoy.getFdsnTime())
+    print(tdoy.getPasscalTime(ms=True))
 
     tdoy = TimeDOY(year=1970, month=1, day=1, hour=0,
                    minute=0, second=0, microsecond=0)
-    print "Should return 0"
-    print tdoy.epoch()
+    print("Should return 0")
+    print(tdoy.epoch())
     tdoy = TimeDOY(year=None,
                    month=None,
                    day=None,
@@ -400,17 +405,17 @@ if __name__ == "__main__":
                    microsecond=0,
                    doy=None,
                    epoch=36)
-    print tdoy.getISOTime()
+    print(tdoy.getISOTime())
 
     tdoy1 = TimeDOY(year=1970, month=1, day=1, hour=0,
                     minute=0, second=0, microsecond=0)
     tdoy2 = TimeDOY(year=1970, month=1, day=1, hour=1,
                     minute=1, second=1, microsecond=1001)
     s = delta(tdoy1, tdoy2)
-    print s
-    print compare(tdoy1, tdoy2), compare(tdoy2, tdoy1)
+    print(s)
+    print(compare(tdoy1, tdoy2), compare(tdoy2, tdoy1))
     import time as t
-    print TimeDOY(epoch=t.time()).getPasscalTime(ms=True)
-    print passcal2epoch("2014:213:06:47:40.32", fepoch=True)
-    print epoch2passcal(passcal2epoch("2014:213:06:47:40.32", fepoch=True))
-    print fdsn2epoch("1970-01-01T00:00:00.000001", fepoch=True)
+    print(TimeDOY(epoch=t.time()).getPasscalTime(ms=True))
+    print(passcal2epoch("2014:213:06:47:40.32", fepoch=True))
+    print(epoch2passcal(passcal2epoch("2014:213:06:47:40.32", fepoch=True)))
+    print(fdsn2epoch("1970-01-01T00:00:00.000001", fepoch=True))
