@@ -1022,29 +1022,29 @@ def add_column(ph5_table, col_name, col_values, col_type, type_len=32):
             col_class = tables.StringCol(type_len)
         elif col_type.lower() == 'int':
             if type_len == 16:
-                col_class = tables.Int16Col
+                col_class = tables.Int16Col()
             elif type_len == 32:
-                col_class = tables.Int32Col
+                col_class = tables.Int32Col()
             elif type_len == 64:
-                col_class = tables.Int64Col
+                col_class = tables.Int64Col()
             else:
-               col_class = tables.Int32Col 
+               col_class = tables.Int32Col() 
         elif col_type.lower() == 'float':
             if type_len == 16:
-                col_class = tables.Float16Col
+                col_class = tables.Float16Col()
             elif type_len == 32:
-                col_class = tables.Float32Col
+                col_class = tables.Float32Col()
             elif type_len == 64:
-                col_class = tables.Float64Col
+                col_class = tables.Float64Col()
             else:
-                col_class = tables.Float32Col
+                col_class = tables.Float32Col()
         return col_class
             
 
     #Step 1: Adjust table description 
     descr = ph5_table.description._v_colobjects.copy()  #original description
     descr[col_name] = get_tables_dtype(col_type, type_len) #add column
-
+    
     #Step 2: Create new temporary table:
     new_table = tables.Table(ph5_table._v_file.root,
                              '_temp_table', 
