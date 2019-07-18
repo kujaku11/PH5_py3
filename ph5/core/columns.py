@@ -784,22 +784,30 @@ def _flatten(sequence, result=None, pre=None):
     return result
 
 
-def keys(ltable):
-    names = ltable.colnames
-    all = []
-    cols = ltable.cols._v_colpathnames
+def keys(ph5_table):
+    """
+    Get all keys and column names in a given table
+    
+    :param ph5_table: input table to get keys from
+    :type ph5_table: pytables.table
+    
+    :returns: list with column names and all keys 
+    """
+    names = ph5_table.colnames
+    all_keys_list = []
+    cols = ph5_table.cols._v_colpathnames
     try:
-        all_keys = {}
-        for k in ltable.colpathnames:
-            all_keys[k] = True
+        all_keys_dict = {}
+        for key in ph5_table.colpathnames:
+            all_keys_dict[key] = True
     except AttributeError:
-        all_keys = _flatten(names)
+        all_keys_dict = _flatten(names)
 
-    for k in cols:
-        if k in all_keys:
-            all.append(k)
+    for key in cols:
+        if key in all_keys_dict:
+            all_keys_list.append(key)
 
-    return all, names
+    return all_keys_list, names
 
 # XXX   Should required_keys be a single key???   XXX
 
