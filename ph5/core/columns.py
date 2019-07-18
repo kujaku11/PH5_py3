@@ -1106,17 +1106,14 @@ def populate(ph5_table, metadata_dict, key=None):
     # key is set so update
     if key:
         if key in metadata_dict:
-            # print "update"
             update(ph5_table, metadata_dict, key)
-            # ltable.flush ()
         else:
             LOGGER.warning("No data for key. p.has_key (key) fails")
             return
+    
     # no key so get a new row to append
     else:
-        # print "append"
         append(ph5_table, metadata_dict)
-        # ltable.flush ()
 
 
 if __name__ == '__main__':
