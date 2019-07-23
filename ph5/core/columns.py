@@ -427,7 +427,7 @@ class Index (tables.IsDescription):
 # Save information about requestor
 
 
-class Sort(tables.IsDescription):
+class Sort (tables.IsDescription):
     '''   Provides a way to group data   '''
     event_id_s = tables.StringCol(16)  # The event that this covers
     array_name_s = tables.StringCol(16, pos=2)  # Name of array
@@ -474,9 +474,9 @@ class Sort(tables.IsDescription):
     description_s = tables.StringCol(1024, pos=5)
 
 
-class Array(tables.IsDescription):
+class Array (tables.IsDescription):
     '''   Provides a way to group stations   '''
-    class deploy_time(tables.IsDescription):
+    class deploy_time (tables.IsDescription):
         '''   Time, either epoch or human readable   '''
         _v_pos = 3
         type_s = tables.StringCol(8, pos=4)  # 'EPOCH', 'ASCII', or 'BOTH'
@@ -485,7 +485,7 @@ class Array(tables.IsDescription):
         ascii_s = tables.StringCol(32, pos=1)
         micro_seconds_i = tables.Int32Col(pos=3)
 
-    class pickup_time(tables.IsDescription):
+    class pickup_time (tables.IsDescription):
         '''   Time, either epoch or human readable   '''
         _v_pos = 4
         type_s = tables.StringCol(8, pos=4)    # 'EPOCH', 'ASCII', or 'BOTH'
@@ -499,7 +499,7 @@ class Array(tables.IsDescription):
     # das              = Instrument ()              #  Instrument
     # at stake
 
-    class das(tables.IsDescription):
+    class das (tables.IsDescription):
         '''   Time, either epoch or human readable   '''
         _v_pos = 5
         manufacturer_s = tables.StringCol(64, pos=3)
@@ -507,7 +507,7 @@ class Array(tables.IsDescription):
         serial_number_s = tables.StringCol(64, pos=1)
         notes_s = tables.StringCol(1024, pos=5)
 
-    class sensor(tables.IsDescription):
+    class sensor (tables.IsDescription):
         '''   Generalized instrument of some sort   '''
         _v_pos = 6
         manufacturer_s = tables.StringCol(64, pos=3)
@@ -516,7 +516,7 @@ class Array(tables.IsDescription):
         notes_s = tables.StringCol(1024, pos=4)
     # location         = Location ()                         # The location
 
-    class location(tables.IsDescription):
+    class location (tables.IsDescription):
         '''   Geographic position   '''
         _v_pos = 2
         # UTM etc.
@@ -571,13 +571,13 @@ class Array(tables.IsDescription):
     description_s = tables.StringCol(1024, pos=7)
 
 
-class Event(tables.IsDescription):
+class Event (tables.IsDescription):
     '''   Table to describe an event, such as a shot   '''
     id_s = tables.StringCol(16, pos=1)  # Event ID/stake number
     # location         = Location ()                         # Location of
     # event
 
-    class location(tables.IsDescription):
+    class location (tables.IsDescription):
         '''   Geographic position   '''
         _v_pos = 2
         # UTM etc.
@@ -587,20 +587,20 @@ class Event(tables.IsDescription):
         # X                 = Units64 ()                         # Latitude,
         # Northing, etc.
 
-        class X(tables.IsDescription):
+        class X (tables.IsDescription):
             _v_pos = 1
             units_s = tables.StringCol(16)
             value_d = tables.Float64Col(pos=1)
         # Y                 = Units64 ()                         # Longitude,
         # Easting, etc.
 
-        class Y(tables.IsDescription):
+        class Y (tables.IsDescription):
             _v_pos = 2
             units_s = tables.StringCol(16)
             value_d = tables.Float64Col(pos=1)
         # Z                 = Units64 ()                         # Elevation
 
-        class Z(tables.IsDescription):
+        class Z (tables.IsDescription):
             _v_pos = 3
             units_s = tables.StringCol(16)
             value_d = tables.Float64Col(pos=1)
@@ -608,7 +608,7 @@ class Event(tables.IsDescription):
         description_s = tables.StringCol(1024, pos=7)
     # time             = Time ()                             # Time of event
 
-    class time(tables.IsDescription):
+    class time (tables.IsDescription):
         '''   Time, either epoch or human readable   '''
         _v_pos = 3
         # 'EPOCH', 'ASCII', or 'BOTH'
@@ -621,14 +621,14 @@ class Event(tables.IsDescription):
     # size             = Units64 ()                          # Size of
     # event, lbs of dynamite, Mb etc.
 
-    class size(tables.IsDescription):
+    class size (tables.IsDescription):
         '''   64 bit float with units   '''
         _v_pos = 4
         units_s = tables.StringCol(16)
         value_d = tables.Float64Col(pos=1)
     # depth            = Units64 ()                          # Depth of event
 
-    class depth(tables.IsDescription):
+    class depth (tables.IsDescription):
         '''   64 bit float with units   '''
         _v_pos = 5
         units_s = tables.StringCol(16)
@@ -638,7 +638,7 @@ class Event(tables.IsDescription):
 # Change description to comment globally
 
 
-class Report(tables.IsDescription):
+class Report (tables.IsDescription):
     '''   Table to describe data reports   '''
     title_s = tables.StringCol(64)  # Title of report, report number
     format_s = tables.StringCol(32)  # Format report is in, pdf, odt, doc, etc.
@@ -657,13 +657,13 @@ class Offset (tables.IsDescription):
     receiver_id_s = tables.StringCol(16)  # Receiver ID
     # offset           = Units64 ()                           # The distance
 
-    class offset(tables.IsDescription):
+    class offset (tables.IsDescription):
         '''   64 bit float with units   '''
         units_s = tables.StringCol(16)
         value_d = tables.Float64Col(pos=1)
     # azimuth
 
-    class azimuth(tables.IsDescription):
+    class azimuth (tables.IsDescription):
         '''   32 bit float with units   '''
         units_s = tables.StringCol(16)
         value_f = tables.Float32Col(pos=1)
@@ -673,17 +673,17 @@ class Offset (tables.IsDescription):
 # Allow negative and positive offsets
 
 
-class Response(tables.IsDescription):
+class Response (tables.IsDescription):
     n_i = tables.Int32Col(pos=1)  # Response number
     # gain_i                  = tables.Int16Col (pos=2)         # Gain
 
-    class gain(tables.IsDescription):
+    class gain (tables.IsDescription):
         units_s = tables.StringCol(16)
         value_i = tables.Int16Col()
     # bit_weight_d            = tables.Float64Col (pos=3)      # Bit weight
     # nV/count
 
-    class bit_weight(tables.IsDescription):
+    class bit_weight (tables.IsDescription):
         '''   64 bit float with units   '''
         _v_pos = 3
         units_s = tables.StringCol(16)  # Volts/Count?
@@ -980,7 +980,22 @@ def update(ph5_table, metadata_dict, key):
 def append(ph5_table, metadata_dict):
     """
     Appends metadata to a given table
+    
+    :param ph5_table: table to append data to
+    :type ph5_table: pytables.table
+    
+    :param metadata_dict: metatdata dictionary
+    :type metadata_dict: dictionary
+    
+    :returns: dictionary with keys not added to table
+    
+    .. note:: Keys in metadata dictionary must match existing keys in given
+              table.  If they do not a warning will be output.  A dictionary
+              of skipped keys is returned to be added later if so desired
+              using add_column function.
     """
+    bad_dict = {}
+    
     row = ph5_table.row
     try:
         table_types = ph5_table.coltypes
@@ -991,8 +1006,8 @@ def append(ph5_table, metadata_dict):
         try:
             dtype = table_types[key]
         except KeyError:
-            print("Keyword {0} is not in initial table, skipping".format(key))
-            LOGGER.error("Keyword {0} is not in initial table, skipping".format(key))
+            LOGGER.warning("Keyword {0} is not in initial table, skipping".format(key))
+            bad_dict[key] = value
             continue
         value = _cast(dtype, value)
         if value is None:
@@ -1006,6 +1021,9 @@ def append(ph5_table, metadata_dict):
 
     row.append()
     ph5_table.flush()
+    
+    return bad_dict
+    
     
 def add_column(ph5_table, col_name, col_values, col_type, type_len=32):
     """
