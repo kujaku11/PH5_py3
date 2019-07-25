@@ -50,6 +50,16 @@ def is_ph5_array_csv(fh):
     fh.seek(0, 0)
     return False
 
+def is_ph5_json(fh):
+    """
+    read in a json file filled with metadata.
+    
+    :param fh: file handle
+    :type fh: file handle to read
+    
+    returns
+    """
+
 
 def array_csvtoinventory(fh):
     """

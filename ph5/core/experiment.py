@@ -28,9 +28,8 @@ os.environ['TZ'] = 'UTM'
 
 try:
     time.tzset()
-except AttributeError as error:
-    print("Windows does not have time.tzset()")
-    print(error)
+except AttributeError:
+    print("WARNING: Windows does not have time.tzset()")
     pass
 
 externalLinkRE = re.compile(".*ExternalLink.*")
@@ -436,10 +435,10 @@ class SortsGroup:
                              name,
                              columns.Event)
 
-        self.ph5_t_event = e
+        self.ph5_t_event[name] = e
 
         columns.add_reference('/Experiment_g/Sorts_g/' +
-                              name, self.ph5_t_event)
+                              name, self.ph5_t_event[name])
 
         return e
 
@@ -453,10 +452,10 @@ class SortsGroup:
                              name,
                              columns.Array)
 
-        self.ph5_t_array = a
+        self.ph5_t_array[name] = a
 
         columns.add_reference('/Experiment_g/Sorts_g/' +
-                              name, self.ph5_t_array)
+                              name, self.ph5_t_array[name])
 
         return a
 
@@ -464,6 +463,12 @@ class SortsGroup:
         return self.newArraySort(name)
 
     def nextName(self):
+        """
+        get the next available array name in the format
+        array_t_xxx
+        
+        :returns: next_array_name
+        """
         names = []
         names.append(0)
         for n in self.ph5.walk_nodes(
@@ -476,7 +481,7 @@ class SortsGroup:
             names.append(name)
 
         names.sort()
-        s = "Array_t_%03d" % (names[-1] + 1)
+        s = "Array_t_{0:03}".format(names[-1] + 1)
 
         return s
 
