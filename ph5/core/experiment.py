@@ -928,26 +928,32 @@ class ReceiversGroup:
         return t
 
     # New das group and tables
-
-    def newdas(self, sn):
-        t = None
-        sn = 'Das_g_' + sn
+    def newdas(self, serial_number):
+        """
+        create a new group for a given instrument
+        
+        :param sn:
+        """
+        receiver_str = '/Experiment_g/Receivers_g'
+        das_group_name = 'Das_g_{0}'.format(serial_number)
         # Create the das group
-        d = initialize_group(self.ph5,
-                             '/Experiment_g/Receivers_g',
-                             sn)
+        das_group = initialize_group(self.ph5,
+                                     receiver_str,
+                                     das_group_name)
 
-        t = initialize_table(self.ph5,
-                             '/Experiment_g/Receivers_g/' + sn,
-                             'Das_t',
-                             columns.Data, expectedrows=1000)
+        das_table = initialize_table(self.ph5,
+                                     '{0}/{1}'.format(receiver_str,
+                                                      serial_number),
+                                     'Das_t',
+                                     columns.Data,
+                                     expectedrows=1000)
 
-        self.current_g_das = d
-        self.current_t_das = t
-        columns.add_reference('/Experiment_g/Receivers_g/' +
-                              sn + '/Das_t', self.current_t_das)
+        self.current_g_das = das_group
+        self.current_t_das = das_table
+        columns.add_reference('{0}/{1}/Das_t'.format(receiver_str,
+                              serial_number), self.current_t_das)
 
-        return d, t, self.ph5_t_receiver, self.ph5_t_time
+        return das_group, das_table, self.ph5_t_receiver, self.ph5_t_time
 
     def nextarray(self, prefix):
         ns = 0
