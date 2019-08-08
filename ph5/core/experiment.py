@@ -943,7 +943,7 @@ class ReceiversGroup:
 
         das_table = initialize_table(self.ph5,
                                      '{0}/{1}'.format(receiver_str,
-                                                      serial_number),
+                                                      das_group_name),
                                      'Das_t',
                                      columns.Data,
                                      expectedrows=1000)
@@ -951,7 +951,7 @@ class ReceiversGroup:
         self.current_g_das = das_group
         self.current_t_das = das_table
         columns.add_reference('{0}/{1}/Das_t'.format(receiver_str,
-                              serial_number), self.current_t_das)
+                              das_group_name), self.current_t_das)
 
         return das_group, das_table, self.ph5_t_receiver, self.ph5_t_time
 

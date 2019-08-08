@@ -381,7 +381,23 @@ class Receiver (tables.IsDescription):
         channel_number_i = tables.Int8Col()
         # Any additional comments
         description_s = tables.StringCol(1024, pos=3)
-
+    class location(tables.IsDescription):
+        """
+        location of the sensor
+        """
+        class x(tables.IsDescription):
+            units_s = tables.StringCol(16)
+            value_f = tables.Float32Col()
+        class y(tables.IsDescription):
+            units_s = tables.StringCol(16)
+            value_f = tables.Float32Col()
+        class z(tables.IsDescription):
+            units_s = tables.StringCol(16)
+            value_f = tables.Float32Col()
+        class length(tables.IsDescription):
+            units_s = tables.StringCol(16)
+            value_f = tables.Float32Col()
+            
 
 class Index (tables.IsDescription):
     '''   Index for multiple file ph5, /Experiment_g/Receivers_g/Index_t   '''
