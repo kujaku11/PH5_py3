@@ -73,6 +73,7 @@ import os
 import string
 import logging
 from pathlib import Path
+import numpy as np
 
 PH5VERSION = '4.1.2'
 PROG_VERSION = '2018.268'
@@ -912,7 +913,8 @@ def _cast(vtype, value):
                 return_value = int(float(value))
             except ValueError:
                 return_value = None
-    elif isinstance(value, (float, int)):
+    elif isinstance(value, (float, int, np.int, np.float, np.int16, np.int32,
+                            np.int64, np.float16, np.float32, np.float64)):
         return_value = value
     else:
         print("Cannot cast {0}".format(type(value)))
@@ -1037,7 +1039,6 @@ def append(ph5_table, metadata_dict):
 
     row.append()
     ph5_table.flush()
-    
     return bad_dict
     
     

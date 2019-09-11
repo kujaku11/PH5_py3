@@ -799,7 +799,7 @@ class ReceiversGroup:
                 t = "undetermined"
         except Exception as e:
             LOGGER.debug("Unable to get trace element type.\n{0}"
-                         .format(e.message))
+                         .format(e))
             t = "undetermined"
 
         return t, trace_ref.byteorder
