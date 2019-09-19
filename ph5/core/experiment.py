@@ -473,17 +473,17 @@ class SortsGroup:
         names.append(0)
         for n in self.ph5.walk_nodes(
                 '/Experiment_g/Sorts_g', classname='Table'):
-            mo = self.Array_tRE.match(n._v_name)
-            if not mo:
+            match_obj = self.Array_tRE.match(n._v_name)
+            if not match_obj:
                 continue
 
-            name = int(mo.groups()[0])
+            name = int(match_obj.groups()[0])
             names.append(name)
 
         names.sort()
-        s = "Array_t_{0:03}".format(names[-1] + 1)
+        array_name = "Array_t_{0:03}".format(names[-1] + 1)
 
-        return s
+        return array_name
 
     def namesRE(self, re):
         '''   Sorts_g table names by RE   '''
@@ -901,11 +901,11 @@ class ReceiversGroup:
 
     def getdas_g(self, sn):
         '''   Return group for a given serial number   '''
-        sn = 'Das_g_' + sn
+        sn = 'Das_g_{0}'.format(sn)
         self.current_g_das = None
         try:
-            g = self.ph5.get_node(self.ph5_g_receivers, name=sn)
-            self.current_g_das = g
+            das_group = self.ph5.get_node(self.ph5_g_receivers, name=sn)
+            self.current_g_das = das_group
         except Exception:
             return None
 

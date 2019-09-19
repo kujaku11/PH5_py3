@@ -423,17 +423,17 @@ class ObspytoPH5(object):
                 group_node = self.ph5.ph5.get_node(external_path)
                 group_node.remove()
 
-            except Exception as e:
-                pass
+            except Exception as error:
+                print(error)
 
             #   Re-create node
             try:
                 self.ph5.ph5.create_external_link(
                     '/Experiment_g/Receivers_g', external_group, target)
                 n += 1
-            except Exception as e:
+            except Exception as error:
                 # pass
-                LOGGER.error(e.message)
+                LOGGER.error(error.msg)
 
         return
 
