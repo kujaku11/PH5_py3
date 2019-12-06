@@ -1,5 +1,8 @@
 Master:
 ph5
+ * fixed errors in entry_points.py that prevented apps from executing.
+ * fixed: seg2toph5, ph5toevt. 
+ * Deleted: ph5view (doesn't compile, was a W.I.P. left to wither) 
  * made pep8 compliant
  * update all modules to use a standardized logger (issue #213)
  * cleanup comments and remove commented out code (issue #216) 
@@ -14,10 +17,13 @@ ph5.clients.ph5toms
  * add day volume cuts
  * add cut length to ph5toms for webservices
  * Fix bug causing duplicate data to be written (issue #264)
- * FIx bug causing data to not be written in special cases at the start of the data in PH5
+ * Fix bug causing data to not be written in special cases at the start of the data in PH5
  * Slight change to naming output on command line for more consistency
  * No longer adds extra sample at end of cut
  * Fix substring issue
+ * Add ph5toms support for the web service SEG-Y timeseries data format.
+ * Fix bug where starttime offset was applied after calculating the end time of a shot gather request
+ * Add web service hooks for reciever gather request type
 ph5.utilities.report_gen
  * add report_gen entry point to setup.py
 ph5.utilities.pformagui
@@ -33,6 +39,14 @@ ph5.clients.tests.test_ph5toms
  * fixed bug in stationCut call
 ph5.clients.ph5tostationxml
  * Limit number of asynchronous processes
+ * Remove storage format from the sxml channel level to be compatible with sxml version 1.1
+ * ph5tostationxml now correctly handles stations with multiple deployments (issue #318)
+ * Add a new custom iris namespace attribute called iris:PH5ReportNum to the network StationXML element
+ * Remove the report number from the alternateCode value in the network StationXML element
+ * Round latitude and longitude to 6 decimal places in stationxml to match SEED maximum
+ * Round elevation to 1 decimal place in stationxml to match SEED maximum
+ ph5.clients.ph5availability
+ * New client for returning timeseries availability information
 ph5.utilities.ph5validate
  * add data time checking
 ph5.utilities.sort_kef_gen.py
@@ -68,12 +82,16 @@ ph5.utilities.tests.test_obspytoph5
  * unit tests for obspytoph5
 ph5.core.tests.test_ph5api
  * unit tests for ph5api
+ph5.core.ph5api
+ * fix ph5api cut sometimes returns too many samples (issue #298)
 ph5.entry_points
  * creates a dictionary, keys are names of scripts, 
       values are (1) simple description, 
       (2) entry points for use by setup.
 ph5.help
  * calls entry_points to print the short descriptions in alpha-order.
+environment.yml
+ * removed unused dependencies and added pykml as a dependency
 
 v4.1.2:
 ph5.utilities.ph5validate
